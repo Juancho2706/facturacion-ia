@@ -10,23 +10,46 @@ export default function HomePage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
+    // Verificar configuración básica
+    const checkConfig = () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        setConfigError('Variables de entorno de Supabase no configuradas');
+        return false;
+      }
+      return true;
+    };
+
     async function getInitialSession() {
       try {
+        // Verificar configuración primero
+        if (!checkConfig()) {
+          setLoading(false);
+          return;
+        }
+
+        console.log('🔍 Verificando sesión de usuario...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
+          console.error('❌ Error obteniendo sesión:', error);
           throw error;
         }
 
+        console.log('✅ Sesión obtenida:', session ? 'Usuario autenticado' : 'Sin sesión');
+        
         if (mounted) {
           setUser(session?.user ?? null);
         }
       } catch (error: any) {
-        console.error('Error getting session:', error);
+        console.error('❌ Error en getInitialSession:', error);
         if (mounted) {
           setError(error.message);
         }
@@ -40,6 +63,7 @@ export default function HomePage() {
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('🔄 Cambio de estado de autenticación:', _event);
       if (mounted) {
         setUser(session?.user ?? null);
       }
@@ -59,6 +83,31 @@ export default function HomePage() {
       setError(error.message);
     }
   };
+
+  // Mostrar error de configuración
+  if (configError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-50">
+        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-xl border border-red-200">
+          <h2 className="text-red-600 text-2xl font-bold mb-4">Error de Configuración</h2>
+          <p className="text-gray-600 mb-6">{configError}</p>
+          <div className="bg-gray-100 p-4 rounded-lg text-sm text-left">
+            <p className="font-semibold mb-2">Variables requeridas:</p>
+            <ul className="space-y-1">
+              <li>• NEXT_PUBLIC_SUPABASE_URL</li>
+              <li>• NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+            </ul>
+          </div>
+          <button 
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg mt-4"
+            onClick={() => window.location.reload()}
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

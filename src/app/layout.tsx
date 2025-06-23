@@ -4,6 +4,7 @@ import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
+  display: 'swap',
   variable: "--font-inter",
 });
 
@@ -19,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.className} antialiased`}>
         {children}
       </body>
     </html>

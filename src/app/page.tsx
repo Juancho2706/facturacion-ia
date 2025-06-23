@@ -60,10 +60,10 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="card" style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
-          <p>Cargando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="loader mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Cargando...</p>
         </div>
       </div>
     );
@@ -71,11 +71,14 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="card" style={{ textAlign: 'center', maxWidth: '400px', borderColor: 'var(--error)' }}>
-          <h2 style={{ color: 'var(--error)' }}>Error</h2>
-          <p>{error}</p>
-          <button className="btn btn-primary" onClick={() => window.location.reload()}>
+      <div className="min-h-screen flex items-center justify-center bg-red-50">
+        <div className="text-center max-w-md mx-auto p-8 bg-white rounded-2xl shadow-xl border border-red-200">
+          <h2 className="text-red-600 text-2xl font-bold mb-4">Error</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button 
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg"
+            onClick={() => window.location.reload()}
+          >
             Reintentar
           </button>
         </div>
@@ -84,61 +87,70 @@ export default function Home() {
   }
 
   return (
-    <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="card" style={{ textAlign: 'center', maxWidth: '500px', width: '100%' }}>
-        {user ? (
-          <>
-            <div style={{ marginBottom: '2rem' }}>
-              <h1>¡Bienvenido!</h1>
-              <p style={{ color: 'var(--foreground-secondary)', fontSize: '1.1rem' }}>
-                {user.email}
-              </p>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link href="/dashboard">
-                <button className="btn btn-primary">
-                  Ir al Dashboard
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto text-center">
+          {user ? (
+            <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100">
+              <div className="mb-8">
+                <h1 className="text-4xl md:text-5xl font-bold text-blue-600 mb-4">
+                  ¡Bienvenido!
+                </h1>
+                <p className="text-gray-600 text-xl">
+                  {user.email}
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/dashboard">
+                  <button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg">
+                    Ir al Dashboard
+                  </button>
+                </Link>
+                <button 
+                  className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-8 rounded-xl"
+                  onClick={handleLogout}
+                >
+                  Cerrar sesión
                 </button>
-              </Link>
-              <button className="btn btn-secondary" onClick={handleLogout}>
-                Cerrar sesión
-              </button>
+              </div>
             </div>
-          </>
-        ) : (
-          <>
-            <div style={{ marginBottom: '2rem' }}>
-              <h1>Sistema de Facturación IA</h1>
-              <p style={{ color: 'var(--foreground-secondary)', fontSize: '1.1rem' }}>
-                Procesa y gestiona tus facturas con inteligencia artificial
-              </p>
+          ) : (
+            <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100">
+              <div className="mb-8">
+                <h1 className="text-4xl md:text-5xl font-bold text-blue-600 mb-6">
+                  Sistema de Facturación IA
+                </h1>
+                <p className="text-gray-600 text-xl max-w-2xl mx-auto">
+                  Procesa y gestiona tus facturas con inteligencia artificial de manera eficiente y segura
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <Link href="/auth">
+                  <button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg">
+                    Iniciar Sesión
+                  </button>
+                </Link>
+                <Link href="/auth">
+                  <button className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-8 rounded-xl">
+                    Registrarse
+                  </button>
+                </Link>
+              </div>
+              
+              <div className="bg-gray-100 rounded-2xl p-8 border border-gray-200">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6">Características principales:</h3>
+                <ul className="text-left list-none p-0">
+                  <li className="p-2">• 📄 Procesamiento automático de facturas</li>
+                  <li className="p-2">• 🤖 Extracción de texto con IA</li>
+                  <li className="p-2">• 📊 Gestión organizada de documentos</li>
+                  <li className="p-2">• 🔒 Almacenamiento seguro en la nube</li>
+                </ul>
+              </div>
             </div>
-            
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link href="/auth">
-                <button className="btn btn-primary">
-                  Iniciar Sesión
-                </button>
-              </Link>
-              <Link href="/auth">
-                <button className="btn btn-secondary">
-                  Registrarse
-                </button>
-              </Link>
-            </div>
-            
-            <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--background-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-              <h3 style={{ marginBottom: '0.5rem' }}>Características principales:</h3>
-              <ul style={{ textAlign: 'left', listStyle: 'none', padding: 0 }}>
-                <li style={{ padding: '0.25rem 0' }}>• 📄 Procesamiento automático de facturas</li>
-                <li style={{ padding: '0.25rem 0' }}>• 🤖 Extracción de texto con IA</li>
-                <li style={{ padding: '0.25rem 0' }}>• 📊 Gestión organizada de documentos</li>
-                <li style={{ padding: '0.25rem 0' }}>• 🔒 Almacenamiento seguro en la nube</li>
-              </ul>
-            </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

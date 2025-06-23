@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Tesseract from 'tesseract.js';
-import { procesarTextoFactura, DatosFactura } from '../app/lib/geminiClient';
+import { DatosFactura } from '../app/lib/geminiClient';
 import InvoiceDataDisplay from './InvoiceDataDisplay';
 
 interface Props {
@@ -49,22 +49,30 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
   };
 
   const processWithAI = async (textoExtraido: string) => {
-    if (!process.env.NEXT_PUBLIC_GOOGLE_API_KEY) {
-      console.warn('NEXT_PUBLIC_GOOGLE_API_KEY no configurada');
-      setError('API key de Google AI no configurada. Verifica tu archivo .env.local');
-      return;
-    }
-
     setProcessingAI(true);
     try {
-      const resultado = await procesarTextoFactura(textoExtraido);
-      setProcessedData(resultado);
+      // Usar la API route en lugar del cliente directo
+      const response = await fetch('/api/process-invoice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: textoExtraido }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al procesar con IA');
+      }
+
+      const { data } = await response.json();
+      setProcessedData(data);
       
       // Mostrar información sobre campos encontrados
-      const camposEncontrados = Object.values(resultado).filter(valor => 
+      const camposEncontrados = Object.values(data).filter(valor => 
         valor !== null && valor !== undefined && valor !== ''
       ).length;
-      const totalCampos = Object.keys(resultado).length;
+      const totalCampos = Object.keys(data).length;
       
       console.log(`✅ IA completada: ${camposEncontrados}/${totalCampos} campos encontrados`);
       
@@ -76,11 +84,11 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
       
       // Mensaje de error más específico
       if (err instanceof Error && err.message.includes('API key')) {
-        setError('Error de API key: ' + err.message);
+        setError('Error de configuración del servidor: ' + err.message);
       } else if (err instanceof Error && err.message.includes('JSON')) {
         setError('Error al procesar respuesta de IA. La factura puede ser muy compleja o la imagen no es clara.');
       } else {
-        setError('Error al procesar con IA. Verifica tu API key y conexión.');
+        setError('Error al procesar con IA. Verifica la configuración del servidor.');
       }
     } finally {
       setProcessingAI(false);

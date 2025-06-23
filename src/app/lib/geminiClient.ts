@@ -1,18 +1,14 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getSafeConfig } from '@/lib/config';
 
-// Validar que la API key esté configurada
-const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-if (!apiKey) {
-  console.error('❌ NEXT_PUBLIC_GOOGLE_API_KEY no está configurada en las variables de entorno');
-  console.error('Asegúrate de tener un archivo .env.local con NEXT_PUBLIC_GOOGLE_API_KEY=tu_api_key');
-}
+const config = getSafeConfig();
 
-// Inicializar el cliente de Gemini
-const genAI = new GoogleGenerativeAI(apiKey || '');
+// Inicializar el cliente de Gemini (solo para uso interno)
+const genAI = new GoogleGenerativeAI(config.google.apiKey);
 
 export async function generarRespuestaGemini(prompt: string) {
-  if (!apiKey) {
-    throw new Error('NEXT_PUBLIC_GOOGLE_API_KEY no está configurada. Verifica tu archivo .env.local');
+  if (!config.google.apiKey) {
+    throw new Error('GOOGLE_API_KEY no está configurada en el servidor');
   }
 
   try {

@@ -3,13 +3,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
-import { DatosFactura, procesarTextoFactura } from '../lib/geminiClient';
+import { DatosFactura } from '../lib/geminiClient';
 import InvoiceProcessor from '@/components/InvoiceProcessor';
 import InvoiceDataDisplay from '@/components/InvoiceDataDisplay';
 import DashboardStats from '@/components/DashboardStats';
 import ConfirmModal from '@/components/ConfirmModal';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
 
 type FileStatus = 'pending' | 'uploaded' | 'processing' | 'processed' | 'error';
 
@@ -70,6 +72,30 @@ export default function DashboardPage() {
 
   const router = useRouter();
   const supabase = createClient();
+
+  // Función para procesar texto con IA usando la API route
+  const processFile = async (texto: string): Promise<DatosFactura> => {
+    try {
+      const response = await fetch('/api/process-invoice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: texto }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al procesar con IA');
+      }
+
+      const { data } = await response.json();
+      return data;
+    } catch (error: any) {
+      console.error('Error procesando con IA:', error);
+      throw new Error('Error al procesar con IA: ' + error.message);
+    }
+  };
 
   const fetchFiles = useCallback(async (userId: string) => {
     setLoading(true);
@@ -256,7 +282,7 @@ export default function DashboardPage() {
       
       // Procesar con IA
       console.log('Starting AI processing...');
-      const datos: DatosFactura = await procesarTextoFactura(extractedText);
+      const datos: DatosFactura = await processFile(extractedText);
       console.log('AI processing completed:', datos);
 
       // Guardar resultados en la base de datos
@@ -322,7 +348,7 @@ export default function DashboardPage() {
     setActiveFileId(null);
 
     try {
-      const datos: DatosFactura = await procesarTextoFactura(texto);
+      const datos: DatosFactura = await processFile(texto);
 
       const { error } = await supabase
         .from('files')

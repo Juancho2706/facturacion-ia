@@ -4,7 +4,9 @@ import { supabase } from './lib/supabaseClient';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default function HomePage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

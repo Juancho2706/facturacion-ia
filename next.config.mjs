@@ -1,7 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Dejaremos la configuración mínima para que Vercel use sus valores predeterminados optimizados.
-  // La mayoría de las configuraciones personalizadas no son necesarias en el entorno de Vercel.
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
 };
 
-export default nextConfig; 
+export default nextConfig;

@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Procesar con Google AI
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
+
     const prompt = `
 Analiza esta factura y extrae los datos disponibles en formato JSON. Es importante que:
 
@@ -69,26 +69,28 @@ ${text}
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const jsonText = response.text();
-    
+
     // Extraer JSON del texto de respuesta
     const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error('No se pudo extraer JSON válido de la respuesta');
     }
-    
+
     const data = JSON.parse(jsonMatch[0]);
-    
+
     return NextResponse.json({ success: true, data });
-    
-  } catch (error: any) {
+
+  } catch (error: unknown) {
     console.error('Error procesando factura:', error);
-    
+
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
     return NextResponse.json(
-      { 
+      {
         error: 'Error al procesar la factura',
-        details: error.message 
+        details: errorMessage
       },
       { status: 500 }
     );
   }
-} 
+}

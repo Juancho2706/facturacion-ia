@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
-import { supabase } from '../lib/supabaseClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +57,7 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -65,10 +65,10 @@ export default function AuthPage() {
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        if(data.user && data.user.identities && data.user.identities.length === 0) {
-            setError("El usuario ya existe. Por favor, inicia sesión.");
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          setError("El usuario ya existe. Por favor, inicia sesión.");
         } else {
-            alert('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
+          alert('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
         }
       }
     } catch (err: any) {
@@ -178,14 +178,16 @@ export default function AuthPage() {
 
         {/* Image Section */}
         <div className="hidden lg:block lg:w-1/2 relative">
-          <div className="absolute inset-0 bg-blue-600/20"></div>
-          <img
+          <div className="absolute inset-0 bg-blue-600/20 z-10"></div>
+          <Image
             src="https://images.unsplash.com/photo-1599423300746-b625ed8ba949?q=80&w=3087&auto=format&fit=crop"
             alt="Facturación IA"
-            className="h-full w-full object-cover"
+            fill
+            className="object-cover"
+            priority
           />
-          <div className="absolute inset-0 bg-black/20"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/20 z-10"></div>
+          <div className="absolute inset-0 flex items-center justify-center z-20">
             <div className="text-center text-white p-8">
               <h2 className="text-4xl font-bold mb-4">Sistema de Facturación IA</h2>
               <p className="text-xl opacity-90">Transforma la manera en que gestionas tus facturas</p>
@@ -195,4 +197,4 @@ export default function AuthPage() {
       </div>
     </div>
   );
-} 
+}

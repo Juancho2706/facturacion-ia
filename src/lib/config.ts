@@ -1,36 +1,36 @@
 // Configuración de variables de entorno
 export const config = {
   supabase: {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
   },
   google: {
-    apiKey: process.env.GOOGLE_API_KEY, // Variable del servidor (no pública)
+    apiKey: process.env.GOOGLE_API_KEY || '',
   },
 };
 
 // Función para validar configuración en runtime
 export function validateConfig() {
   const errors: string[] = [];
-  
+
   if (!config.supabase.url) {
     errors.push('NEXT_PUBLIC_SUPABASE_URL no está configurada');
   }
-  
+
   if (!config.supabase.anonKey) {
     errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY no está configurada');
   }
-  
+
   // Solo validar Google API key en el servidor
   if (typeof window === 'undefined' && !config.google.apiKey) {
     errors.push('GOOGLE_API_KEY no está configurada en el servidor');
   }
-  
+
   if (errors.length > 0) {
     console.error('❌ Errores de configuración:', errors.join(', '));
     return false;
   }
-  
+
   return true;
 }
 
@@ -45,4 +45,4 @@ export function getSafeConfig() {
       apiKey: config.google.apiKey || '',
     },
   };
-} 
+}

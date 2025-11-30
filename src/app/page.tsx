@@ -123,7 +123,7 @@ export default function HomePage() {
             <div className="grid md:grid-cols-3 gap-8 relative">
               {/* Decorative line */}
               <div className="hidden md:block absolute top-1/2 left-0 w-full h-px bg-gray-300 -translate-y-1/2"></div>
-              
+
               <div className="relative z-10 bg-white p-6 rounded-lg border border-gray-200">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">1</span>
                 <UploadIcon />
@@ -152,7 +152,7 @@ export default function HomePage() {
             <h3 className="text-3xl font-bold mb-12">Amado por profesionales y empresas</h3>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="bg-gray-50 p-8 rounded-xl text-left">
-                <p className="text-gray-600 italic mb-4">"FacturaIA ha transformado nuestra contabilidad. Lo que antes nos tomaba horas, ahora se hace en minutos. ¡Imprescindible!"</p>
+                <p className="text-gray-600 italic mb-4">&quot;FacturaIA ha transformado nuestra contabilidad. Lo que antes nos tomaba horas, ahora se hace en minutos. ¡Imprescindible!&quot;</p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-full bg-blue-100 mr-4 flex-shrink-0"></div>
                   <div>
@@ -162,7 +162,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="bg-gray-50 p-8 rounded-xl text-left">
-                <p className="text-gray-600 italic mb-4">"La precisión de la IA es asombrosa. Hemos reducido los errores manuales a cero y tenemos una visión clara de nuestros gastos."</p>
+                <p className="text-gray-600 italic mb-4">&quot;La precisión de la IA es asombrosa. Hemos reducido los errores manuales a cero y tenemos una visión clara de nuestros gastos.&quot;</p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-full bg-blue-100 mr-4 flex-shrink-0"></div>
                   <div>

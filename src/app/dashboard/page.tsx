@@ -3,12 +3,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
 import { DatosFactura } from '../lib/geminiClient';
 import InvoiceProcessor from '@/components/InvoiceProcessor';
 import InvoiceDataDisplay from '@/components/InvoiceDataDisplay';
 import DashboardStats from '@/components/DashboardStats';
 import ConfirmModal from '@/components/ConfirmModal';
-import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -36,7 +36,14 @@ interface FileData {
   metodoPago: string | null;
   direccionProveedor: string | null;
   rfcProveedor: string | null;
-  items: any[]; // Items de la factura en formato JSON
+  items: InvoiceItem[]; // Items de la factura en formato JSON
+}
+
+interface InvoiceItem {
+  descripcion: string;
+  cantidad: number | null;
+  precioUnitario: number | null;
+  subtotal: number | null;
 }
 
 // Función auxiliar para obtener el nombre del archivo
@@ -46,6 +53,9 @@ const getFileName = (filePath: string) => {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const supabase = createClient();
+
   const [user, setUser] = useState<User | null>(null);
   const [files, setFiles] = useState<FileData[]>([]);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -59,7 +69,7 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<'list' | 'stats'>('stats');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<FileStatus | 'all'>('all');
-  
+
   // Estados para el modal de confirmación
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<FileData | null>(null);
@@ -69,9 +79,6 @@ export default function DashboardPage() {
   // Estado para la navegación del sidebar
   const [activeView, setActiveView] = useState<'stats' | 'list'>('stats');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const router = useRouter();
-  const supabase = createClient();
 
   // Función para procesar texto con IA usando la API route
   const processFile = async (texto: string): Promise<DatosFactura> => {
@@ -91,22 +98,23 @@ export default function DashboardPage() {
 
       const { data } = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error procesando con IA:', error);
-      throw new Error('Error al procesar con IA: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error('Error al procesar con IA: ' + errorMessage);
     }
   };
 
   const fetchFiles = useCallback(async (userId: string) => {
     setLoading(true);
-    
+
     try {
       const { data, error } = await supabase
         .from('files')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
-      
+
       if (error) {
         console.error('Error fetching files from DB:', error);
       } else {
@@ -122,28 +130,28 @@ export default function DashboardPage() {
   const syncFiles = async () => {
     if (!user) return;
     setSyncing(true);
-  
+
     const { data: storageFiles, error: storageError } = await supabase.storage
       .from('facturas')
       .list(user.id, { limit: 100, offset: 0 });
-  
+
     if (storageError) {
       console.error("Error al listar archivos de Storage:", storageError);
       setSyncing(false);
       return;
     }
-  
+
     const { data: dbFiles, error: dbError } = await supabase
       .from('files')
       .select('name')
       .eq('user_id', user.id);
-  
+
     if (dbError) {
       console.error("Error al consultar la base de datos:", dbError);
       setSyncing(false);
       return;
     }
-  
+
     const dbFileNames = new Set(dbFiles.map((f: { name: string }) => f.name));
     const filesToInsert = storageFiles
       .filter((sf: { name: string }) => !dbFileNames.has(sf.name))
@@ -153,11 +161,11 @@ export default function DashboardPage() {
         file_path: `${user.id}/${sf.name}`,
         status: 'pending' as const,
       }));
-  
+
     if (filesToInsert.length > 0) {
       await supabase.from('files').insert(filesToInsert);
     }
-  
+
     await fetchFiles(user.id);
     setSyncing(false);
   };
@@ -165,7 +173,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
         setUser(session.user);
         fetchFiles(session.user.id);
@@ -180,7 +188,7 @@ export default function DashboardPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('handleFileChange called');
     console.log('Files in input:', e.target.files);
-    
+
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       console.log('Selected file:', file.name, file.size, file.type);
@@ -195,12 +203,12 @@ export default function DashboardPage() {
     console.log('handleUpload called');
     console.log('selectedFile:', selectedFile);
     console.log('user:', user);
-    
+
     if (!selectedFile || !user) {
       console.log('Missing selectedFile or user, returning early');
       return;
     }
-    
+
     console.log('Starting upload process...');
     setUploading(true);
     const filePath = `${user.id}/${Date.now()}-${selectedFile.name}`;
@@ -234,19 +242,19 @@ export default function DashboardPage() {
       console.log('File inserted successfully, starting AI processing...');
       setSelectedFile(null);
       setUploading(false);
-      
+
       // Actualizar la lista de archivos
       await fetchFiles(user.id);
-      
+
       // Procesar automáticamente con IA si se insertó correctamente
       if (insertData && insertData.length > 0) {
         const newFile = insertData[0] as FileData;
         console.log('Starting automatic AI processing for file:', newFile.id);
-        
+
         // Procesar automáticamente la factura
         await processFileAutomatically(newFile);
       }
-      
+
       console.log('Upload and processing process completed successfully');
     } catch (error) {
       console.error('Exception in handleUpload:', error);
@@ -257,20 +265,20 @@ export default function DashboardPage() {
   // Nueva función para procesar automáticamente una factura
   const processFileAutomatically = async (file: FileData) => {
     if (!user) return;
-    
+
     console.log('Processing file automatically:', file.id);
-    
+
     // Actualizar estado a processing
     setFiles(files => files.map(f => f.id === file.id ? { ...f, status: 'processing' } : f));
-    
+
     try {
       // Obtener la URL del archivo
       const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/facturas/${file.file_path}`;
-      
+
       // Procesar con Tesseract OCR
       console.log('Starting OCR processing...');
       const Tesseract = (await import('tesseract.js')).default;
-      
+
       const result = await Tesseract.recognize(fileUrl, 'spa', {
         logger: (m) => {
           console.log('OCR Progress:', m.status, m.progress);
@@ -279,7 +287,7 @@ export default function DashboardPage() {
 
       const extractedText = result.data.text;
       console.log('OCR completed, extracted text length:', extractedText.length);
-      
+
       // Procesar con IA
       console.log('Starting AI processing...');
       const datos: DatosFactura = await processFile(extractedText);
@@ -318,12 +326,12 @@ export default function DashboardPage() {
       setFiles(files =>
         files.map(f =>
           f.id === file.id
-            ? { 
-                ...f, 
-                status: 'processed', 
-                ...datos, 
-                extracted_text: extractedText,
-              }
+            ? {
+              ...f,
+              status: 'processed',
+              ...datos,
+              extracted_text: extractedText,
+            }
             : f
         )
       );
@@ -331,10 +339,10 @@ export default function DashboardPage() {
       console.log('Automatic processing completed successfully for file:', file.id);
     } catch (error) {
       console.error('Error in automatic processing:', error);
-      
+
       // Marcar como error en la base de datos
       await supabase.from('files').update({ status: 'error' }).eq('id', file.id);
-      
+
       // Actualizar estado local
       setFiles(files => files.map(f => f.id === file.id ? { ...f, status: 'error' } : f));
     }
@@ -343,7 +351,7 @@ export default function DashboardPage() {
   // Función para procesamiento manual (desde el panel derecho)
   const saveAndProcessFile = async (fileId: string, texto: string) => {
     if (!user) return;
-    
+
     setFiles(files => files.map(f => f.id === fileId ? { ...f, status: 'processing' } : f));
     setActiveFileId(null);
 
@@ -378,12 +386,12 @@ export default function DashboardPage() {
       setFiles(files =>
         files.map(f =>
           f.id === fileId
-            ? { 
-                ...f, 
-                status: 'processed', 
-                ...datos, 
-                extracted_text: texto,
-              }
+            ? {
+              ...f,
+              status: 'processed',
+              ...datos,
+              extracted_text: texto,
+            }
             : f
         )
       );
@@ -397,7 +405,7 @@ export default function DashboardPage() {
   const handleViewAndProcess = (file: FileData) => {
     setActiveFileUrl(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/facturas/${file.file_path}`);
     setActiveFileId(file.id);
-    
+
     // Si ya tiene datos procesados, mostrarlos
     if (file.status === 'processed' && (file.proveedor || file.monto)) {
       setActiveFileData({
@@ -451,10 +459,10 @@ export default function DashboardPage() {
       setFiles(files =>
         files.map(f =>
           f.id === activeFileId
-            ? { 
-                ...f, 
-                ...datos,
-              }
+            ? {
+              ...f,
+              ...datos,
+            }
             : f
         )
       );
@@ -524,13 +532,13 @@ export default function DashboardPage() {
 
   // Filtrar archivos
   const filteredFiles = files.filter(file => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       file.proveedor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       file.numeroFactura?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getFileName(file.file_path).toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = filterStatus === 'all' || file.status === filterStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -568,9 +576,9 @@ export default function DashboardPage() {
       uploaded: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', text: 'Subido' },
       pending: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200', text: 'Pendiente' }
     };
-    
+
     const config = statusConfig[status];
-    
+
     if (!config) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
@@ -578,7 +586,7 @@ export default function DashboardPage() {
         </span>
       );
     }
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
         {config.text}
@@ -601,7 +609,7 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            
+
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">AI</span>
             </div>
@@ -609,7 +617,7 @@ export default function DashboardPage() {
               FacturaIA Dashboard
             </h1>
           </div>
-          
+
           {/* User Menu */}
           <div className="relative user-menu">
             <button
@@ -633,7 +641,7 @@ export default function DashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            
+
             {/* Dropdown Menu */}
             {userMenuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
@@ -655,7 +663,7 @@ export default function DashboardPage() {
       <div className="flex">
         {/* Sidebar - Mobile Overlay */}
         {sidebarOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
@@ -670,28 +678,26 @@ export default function DashboardPage() {
                   setActiveView('stats');
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                  activeView === 'stats'
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeView === 'stats'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 <span className="font-medium">Estadísticas</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   setActiveView('list');
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                  activeView === 'list'
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeView === 'list'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -711,7 +717,7 @@ export default function DashboardPage() {
                   Estadísticas del Dashboard
                 </h2>
               </div>
-              
+
               <DashboardStats files={files} />
             </div>
           ) : (
@@ -721,7 +727,7 @@ export default function DashboardPage() {
                   Gestión de Facturas
                 </h2>
               </div>
-              
+
               {/* Upload Section */}
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -729,7 +735,7 @@ export default function DashboardPage() {
                     Subir Nueva Factura
                   </h3>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
                     <input
@@ -758,7 +764,7 @@ export default function DashboardPage() {
                       )}
                     </button>
                   </div>
-                  
+
                   {uploading && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                       <div className="flex items-center space-x-3">
@@ -784,11 +790,11 @@ export default function DashboardPage() {
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
-                  
+
                   <div className="flex items-center space-x-4">
                     <select
                       value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value as any)}
+                      onChange={(e) => setFilterStatus(e.target.value as FileStatus | 'all')}
                       className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       <option value="all">Todos los estados</option>
@@ -809,7 +815,7 @@ export default function DashboardPage() {
                     Facturas ({filteredFiles.length})
                   </h3>
                 </div>
-                
+
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {filteredFiles.length === 0 ? (
                     <div className="p-8 text-center">
@@ -849,7 +855,7 @@ export default function DashboardPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2 mb-2">
                               <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate pl-10 sm:pl-12">
@@ -857,7 +863,7 @@ export default function DashboardPage() {
                               </h4>
                               {getStatusBadge(file.status)}
                             </div>
-                            
+
                             <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 text-sm text-gray-500 dark:text-gray-400">
                               <span>Subido: {new Date(file.created_at).toLocaleDateString('es-MX')}</span>
                               {file.proveedor && (
@@ -868,7 +874,7 @@ export default function DashboardPage() {
                               )}
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2 flex-shrink-0">
                             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -904,7 +910,7 @@ export default function DashboardPage() {
                     </svg>
                   </button>
                 </div>
-                
+
                 <div className="flex flex-col lg:flex-row h-[calc(90vh-120px)]">
                   {/* Image Panel */}
                   <div className="w-full lg:w-1/2 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700">
@@ -916,7 +922,7 @@ export default function DashboardPage() {
                       />
                     </div>
                   </div>
-                  
+
                   {/* Processing Panel */}
                   <div className="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto">
                     {activeFileData ? (

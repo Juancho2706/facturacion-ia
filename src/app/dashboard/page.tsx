@@ -193,7 +193,60 @@ export default function DashboardPage() {
     }
 
     await fetchFiles(user.id);
+    await fetchFiles(user.id);
     setSyncing(false);
+  };
+
+  const cleanupOrphans = async () => {
+    if (!user) return;
+    if (!confirm('Esto eliminará de la base de datos cualquier factura que no tenga un archivo físico asociado. ¿Continuar?')) return;
+
+    setSyncing(true);
+    try {
+      // 1. Obtener archivos de Storage (limitado a 1000 para seguridad)
+      const { data: storageFiles, error: storageError } = await supabase.storage
+        .from('facturas')
+        .list(user.id, { limit: 1000 });
+
+      if (storageError) throw storageError;
+
+      const storageFileNames = new Set(storageFiles.map(f => f.name));
+
+      // 2. Obtener archivos de DB
+      const { data: dbFiles, error: dbError } = await supabase
+        .from('files')
+        .select('id, file_path')
+        .eq('user_id', user.id);
+
+      if (dbError) throw dbError;
+
+      // 3. Identificar huérfanos
+      const orphans = dbFiles.filter(dbFile => {
+        const fileName = dbFile.file_path.split('/').pop();
+        return !storageFileNames.has(fileName || '');
+      });
+
+      // 4. Eliminar huérfanos
+      if (orphans.length > 0) {
+        console.log(`Eliminando ${orphans.length} facturas huérfanas...`);
+        const { error: deleteError } = await supabase
+          .from('files')
+          .delete()
+          .in('id', orphans.map(o => o.id));
+
+        if (deleteError) throw deleteError;
+
+        alert(`Se limpiaron ${orphans.length} registros antiguos correctamente.`);
+        await fetchFiles(user.id);
+      } else {
+        alert('La base de datos está sincronizada, no se encontraron registros huérfanos.');
+      }
+    } catch (error) {
+      console.error('Error en limpieza:', error);
+      alert('Hubo un error al intentar limpiar la base de datos.');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   useEffect(() => {
@@ -875,10 +928,17 @@ export default function DashboardPage() {
 
               {/* Files List */}
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                     Facturas ({filteredFiles.length})
                   </h3>
+                  <button
+                    onClick={cleanupOrphans}
+                    disabled={syncing}
+                    className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline disabled:opacity-50"
+                  >
+                    {syncing ? 'Verificando...' : 'Diagnosticar DB'}
+                  </button>
                 </div>
 
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">

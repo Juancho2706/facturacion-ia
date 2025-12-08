@@ -12,8 +12,8 @@ export async function generarRespuestaGemini(prompt: string) {
   }
 
   try {
-    // Usar el modelo Gemini 2.0 Flash Lite
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite-001' });
+    // Usar el modelo Gemini Flash Latest
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     // Generar respuesta
     const result = await model.generateContent(prompt);

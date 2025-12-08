@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Procesar con Google AI
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite-001' });
+    // Procesar con Google AI (Modelo standard 1.5 Flash)
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     const prompt = `
 Analiza esta factura y extrae los datos disponibles en formato JSON. Es importante que:
@@ -84,6 +84,28 @@ ${text}
     console.error('Error procesando factura:', error);
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    let retryAfter = 0;
+
+    // Detectar error de Rate Limit (429) y extraer tiempo de espera
+    if (errorMessage.includes('429') || errorMessage.includes('quota')) {
+      const match = errorMessage.match(/retry in\s+([\d.]+)/i);
+      if (match && match[1]) {
+        retryAfter = Math.ceil(parseFloat(match[1]));
+      } else {
+        retryAfter = 60; // Default a 60s si no se encuentra
+      }
+    }
+
+    if (retryAfter > 0) {
+      return NextResponse.json(
+        {
+          error: 'RateLimit',
+          retryAfter,
+          message: `Límite de cuota excedido. Reintentar en ${retryAfter}s.`
+        },
+        { status: 429 }
+      );
+    }
 
     return NextResponse.json(
       {

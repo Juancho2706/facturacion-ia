@@ -11,6 +11,7 @@ import DashboardStats from '@/components/DashboardStats';
 import InvoiceCalculator from '@/components/InvoiceCalculator';
 import ConfirmModal from '@/components/ConfirmModal';
 import Link from 'next/link';
+import { RateLimitAlert } from '@/components/RateLimitAlert';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,6 +81,7 @@ export default function DashboardPage() {
   // Estado para la navegación del sidebar
   const [activeView, setActiveView] = useState<'stats' | 'list' | 'calculator'>('stats');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [rateLimitUntil, setRateLimitUntil] = useState<Date | null>(null);
 
   // Función para procesar texto con IA usando la API route
   const processFile = async (texto: string): Promise<DatosFactura> => {
@@ -94,13 +96,31 @@ export default function DashboardPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al procesar con IA');
+        console.error('API Error Details:', errorData);
+
+        if (response.status === 429 && errorData.retryAfter) {
+          // Lanzar un objeto de error especial para Rate Limit
+          // eslint-disable-next-line no-throw-literal
+          throw {
+            code: 'RateLimit',
+            retryAfter: errorData.retryAfter,
+            message: errorData.message || 'Límite de cuota excedido'
+          };
+        }
+
+        throw new Error(errorData.details || errorData.error || 'Error al procesar con IA');
       }
 
       const { data } = await response.json();
       return data;
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Error procesando con IA:', error);
+
+      // Si es nuestro error custom de RateLimit, lo relanzamos tal cual
+      if (error.code === 'RateLimit') {
+        throw error;
+      }
+
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error('Error al procesar con IA: ' + errorMessage);
     }
@@ -343,8 +363,16 @@ export default function DashboardPage() {
       );
 
       console.log('Automatic processing completed successfully for file:', file.id);
-    } catch (error) {
+      console.log('Automatic processing completed successfully for file:', file.id);
+    } catch (error: any) {
       console.error('Error in automatic processing:', error);
+
+      // Manejar Rate Limit
+      if (error.code === 'RateLimit') {
+        const retryTime = new Date(Date.now() + error.retryAfter * 1000);
+        setRateLimitUntil(retryTime);
+        console.log(`Rate limit hit. Retrying allowed at: ${retryTime.toLocaleTimeString()}`);
+      }
 
       // Marcar como error en la base de datos
       await supabase.from('files').update({ status: 'error' }).eq('id', file.id);
@@ -926,62 +954,66 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Right Panel for File Processing */}
-          {activeFileUrl && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Procesamiento de Factura
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setActiveFileUrl(null);
-                      setActiveFileId(null);
-                      setActiveFileData(null);
-                    }}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
 
-                <div className="flex flex-col lg:flex-row h-[calc(90vh-120px)]">
-                  {/* Image Panel */}
-                  <div className="w-full lg:w-1/2 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700">
-                    <div className="h-64 lg:h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                      <img
-                        src={activeFileUrl}
-                        alt="Factura"
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    </div>
+          {/* Right Panel for File Processing */}
+          {
+            activeFileUrl && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                  <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Procesamiento de Factura
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setActiveFileUrl(null);
+                        setActiveFileId(null);
+                        setActiveFileData(null);
+                      }}
+                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
 
-                  {/* Processing Panel */}
-                  <div className="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto">
-                    {activeFileData ? (
-                      <InvoiceDataDisplay
-                        datos={activeFileData}
-                        onSave={handleSaveData}
-                      />
-                    ) : (
-                      <InvoiceProcessor
-                        fileUrl={activeFileUrl}
-                        onTextExtracted={(text) => {
-                          if (activeFileId) {
-                            saveAndProcessFile(activeFileId, text);
-                          }
-                        }}
-                      />
-                    )}
+                  <div className="flex flex-col lg:flex-row h-[calc(90vh-120px)]">
+                    {/* Image Panel */}
+                    <div className="w-full lg:w-1/2 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700">
+                      <div className="h-64 lg:h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                        <img
+                          src={activeFileUrl}
+                          alt="Factura"
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Processing Panel */}
+                    <div className="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto">
+                      {activeFileData ? (
+                        <InvoiceDataDisplay
+                          datos={activeFileData}
+                          onSave={handleSaveData}
+                        />
+                      ) : (
+                        <InvoiceProcessor
+                          fileUrl={activeFileUrl}
+                          onTextExtracted={(text) => {
+                            if (activeFileId) {
+                              saveAndProcessFile(activeFileId, text);
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )
+          }
+
 
           {/* Delete Confirmation Modal */}
           <ConfirmModal
@@ -994,9 +1026,9 @@ export default function DashboardPage() {
             cancelText="Cancelar"
             isDestructive={true}
           />
-        </main>
-      </div>
-    </div>
+        </main >
+      </div >
+    </div >
   );
 }
 

@@ -117,7 +117,12 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching files from DB:', error);
+        console.error('Error fetching files from DB:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
       } else {
         setFiles(data as FileData[]);
       }

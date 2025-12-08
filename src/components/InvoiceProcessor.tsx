@@ -37,7 +37,7 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
       const extractedText = result.data.text;
       setText(extractedText);
       onTextExtracted(extractedText);
-      
+
       // Procesar con Gemini AI automáticamente
       await processWithAI(extractedText);
     } catch (err) {
@@ -67,21 +67,21 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
 
       const { data } = await response.json();
       setProcessedData(data);
-      
+
       // Mostrar información sobre campos encontrados
-      const camposEncontrados = Object.values(data).filter(valor => 
+      const camposEncontrados = Object.values(data).filter(valor =>
         valor !== null && valor !== undefined && valor !== ''
       ).length;
       const totalCampos = Object.keys(data).length;
-      
+
       console.log(`✅ IA completada: ${camposEncontrados}/${totalCampos} campos encontrados`);
-      
+
       if (camposEncontrados < 3) {
         console.warn('⚠️ Pocos campos encontrados. La factura puede ser muy simple o la imagen no es clara.');
       }
     } catch (err) {
       console.error('Error al procesar con AI:', err);
-      
+
       // Mensaje de error más específico
       if (err instanceof Error && err.message.includes('API key')) {
         setError('Error de configuración del servidor: ' + err.message);
@@ -97,8 +97,8 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <button 
-        onClick={processImage} 
+      <button
+        onClick={processImage}
         disabled={processing}
         className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-sm sm:text-base"
       >
@@ -124,7 +124,7 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
             </span>
           </div>
           <div className="w-full bg-blue-200 dark:bg-blue-700 rounded-full h-2 sm:h-3 overflow-hidden">
-            <div 
+            <div
               className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
               style={{ width: `${progress * 100}%` }}
             ></div>
@@ -189,8 +189,8 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
               </div>
             </div>
           </div>
-          
-          <InvoiceDataDisplay 
+
+          <InvoiceDataDisplay
             datos={processedData}
             onSave={(datos) => {
               setProcessedData(datos);

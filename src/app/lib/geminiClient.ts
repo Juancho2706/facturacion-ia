@@ -12,22 +12,22 @@ export async function generarRespuestaGemini(prompt: string) {
   }
 
   try {
-    // Usar el modelo Gemini Flash (más rápido y económico)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Usar el modelo Gemini 2.0 Flash Lite
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite-001' });
 
     // Generar respuesta
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    
+
     return response.text();
   } catch (error) {
     console.error('Error al generar respuesta con Gemini:', error);
-    
+
     // Mensaje de error más específico
     if (error instanceof Error && error.message.includes('API key not valid')) {
       throw new Error('API key de Google AI inválida. Verifica que tu API key sea correcta y esté activa.');
     }
-    
+
     throw new Error('Error al procesar con IA: ' + (error as Error).message);
   }
 }
@@ -203,16 +203,16 @@ IMPORTANTE: Responde SOLO con el JSON válido, sin texto adicional.
 
   try {
     const respuesta = await generarRespuestaGemini(prompt);
-    
+
     // Limpiar la respuesta para extraer solo el JSON
     let jsonString = respuesta.trim();
-    
+
     // Buscar el JSON en la respuesta (por si la IA agregó texto adicional)
     const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       jsonString = jsonMatch[0];
     }
-    
+
     // Intentar parsear el JSON
     let datos;
     try {
@@ -222,26 +222,26 @@ IMPORTANTE: Responde SOLO con el JSON válido, sin texto adicional.
       console.log('Raw AI response:', respuesta);
       throw new Error('La IA no pudo generar una respuesta JSON válida. Intenta con una imagen más clara.');
     }
-    
+
     // Validar que sea un objeto
     if (typeof datos !== 'object' || datos === null) {
       throw new Error('La IA no generó un objeto JSON válido.');
     }
-    
+
     // Validar y limpiar los datos
     const datosLimpios = validarYLimpiarDatos(datos);
-    
+
     // Verificar que al menos tenemos datos básicos
     const camposBasicos = [datosLimpios.proveedor, datosLimpios.fecha, datosLimpios.monto];
     const camposBasicosEncontrados = camposBasicos.filter(campo => campo !== null).length;
-    
+
     if (camposBasicosEncontrados === 0) {
       console.warn('⚠️ No se encontraron campos básicos (proveedor, fecha, monto). La factura puede ser muy simple o la imagen no es clara.');
     }
-    
+
     console.log('✅ Datos extraídos exitosamente:', datosLimpios);
     return datosLimpios;
-    
+
   } catch (error) {
     console.error('Error en procesarTextoFactura:', error);
     throw error;

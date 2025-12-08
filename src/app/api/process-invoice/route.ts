@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Procesar con Google AI
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite-001' });
 
     const prompt = `
 Analiza esta factura y extrae los datos disponibles en formato JSON. Es importante que:

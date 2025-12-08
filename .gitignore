@@ -49,3 +49,5 @@ yarn-error.log*
 next-env.d.ts
 seed_data.sql
 lint_output.txt
+schema.sql
+database_update.sql

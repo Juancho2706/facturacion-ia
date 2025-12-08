@@ -8,6 +8,7 @@ import { DatosFactura } from '../lib/geminiClient';
 import InvoiceProcessor from '@/components/InvoiceProcessor';
 import InvoiceDataDisplay from '@/components/InvoiceDataDisplay';
 import DashboardStats from '@/components/DashboardStats';
+import InvoiceCalculator from '@/components/InvoiceCalculator';
 import ConfirmModal from '@/components/ConfirmModal';
 import Link from 'next/link';
 
@@ -77,7 +78,7 @@ export default function DashboardPage() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   // Estado para la navegación del sidebar
-  const [activeView, setActiveView] = useState<'stats' | 'list'>('stats');
+  const [activeView, setActiveView] = useState<'stats' | 'list' | 'calculator'>('stats');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Función para procesar texto con IA usando la API route
@@ -704,6 +705,22 @@ export default function DashboardPage() {
                 </svg>
                 <span className="font-medium">Lista de Facturas</span>
               </button>
+
+              <button
+                onClick={() => {
+                  setActiveView('calculator');
+                  setSidebarOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeView === 'calculator'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span className="font-medium">Calculadora</span>
+              </button>
             </nav>
           </div>
         </aside>
@@ -719,6 +736,21 @@ export default function DashboardPage() {
               </div>
 
               <DashboardStats files={files} />
+            </div>
+          ) : activeView === 'calculator' ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                  Calculadora de Facturación
+                </h2>
+              </div>
+              <InvoiceCalculator
+                user={user}
+                onInvoiceSaved={() => {
+                  if (user) fetchFiles(user.id);
+                  setActiveView('list');
+                }}
+              />
             </div>
           ) : (
             <div className="space-y-6">

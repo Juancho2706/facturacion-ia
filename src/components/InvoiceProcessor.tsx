@@ -100,78 +100,92 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
       <button
         onClick={processImage}
         disabled={processing}
-        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-sm sm:text-base"
+        className="group relative w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-xl shadow-blue-500/20 active:scale-95 overflow-hidden"
       >
-        {processing ? (
-          <>
-            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span>Procesando factura...</span>
-          </>
-        ) : (
-          <>
-            <span className="text-lg sm:text-xl">🤖</span>
-            <span>Procesar con IA</span>
-          </>
-        )}
+        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 skew-y-12"></div>
+        <div className="relative flex items-center justify-center space-x-3">
+          {processing ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Procesando factura...</span>
+            </>
+          ) : (
+            <>
+              <span className="text-xl filter drop-shadow">⚡</span>
+              <span>Procesar con IA</span>
+            </>
+          )}
+        </div>
       </button>
 
       {processing && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 sm:p-6 rounded-xl border border-blue-200 dark:border-blue-700">
-          <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
-            <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-blue-800 dark:text-blue-200 font-medium text-sm sm:text-base">
-              Extrayendo texto de la imagen...
-            </span>
+        <div className="bg-[#151B2D]/60 backdrop-blur-md p-6 rounded-2xl border border-blue-500/30 shadow-lg animate-fade-in relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-2xl -mr-10 -mt-10 rounded-full"></div>
+          <div className="relative z-10">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-blue-300 font-bold text-sm uppercase tracking-wider">
+                Extrayendo texto de la imagen...
+              </span>
+            </div>
+            <div className="w-full bg-[#0B0C15] rounded-full h-3 overflow-hidden border border-white/5">
+              <div
+                className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                style={{ width: `${progress * 100}%` }}
+              ></div>
+            </div>
+            <p className="text-blue-400 text-xs mt-2 text-right font-mono">
+              {Math.round(progress * 100)}%
+            </p>
           </div>
-          <div className="w-full bg-blue-200 dark:bg-blue-700 rounded-full h-2 sm:h-3 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
-              style={{ width: `${progress * 100}%` }}
-            ></div>
-          </div>
-          <p className="text-blue-600 dark:text-blue-300 text-xs sm:text-sm mt-2 text-center">
-            {Math.round(progress * 100)}% completado
-          </p>
         </div>
       )}
 
       {processingAI && (
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 sm:p-6 rounded-xl border border-purple-200 dark:border-purple-700">
-          <div className="flex items-center justify-center space-x-2 sm:space-x-3">
-            <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-purple-800 dark:text-purple-200 font-medium text-sm sm:text-base">
+        <div className="bg-[#151B2D]/60 backdrop-blur-md p-6 rounded-2xl border border-purple-500/30 shadow-lg animate-fade-in relative overflow-hidden">
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/10 blur-2xl -ml-10 -mb-10 rounded-full"></div>
+          <div className="relative z-10 flex flex-col items-center py-4">
+            <div className="w-12 h-12 mb-4 relative">
+              <div className="absolute inset-0 border-4 border-purple-500/30 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <span className="text-purple-300 font-bold text-sm uppercase tracking-wider text-center">
               🧠 Analizando con IA...
             </span>
+            <p className="text-purple-400/60 text-xs mt-2 text-center max-w-xs">
+              Detectando estructura inteligente y validando datos fiscales
+            </p>
           </div>
-          <p className="text-purple-600 dark:text-purple-300 text-xs sm:text-sm mt-2 text-center">
-            Extrayendo datos estructurados de la factura
-          </p>
         </div>
       )}
 
       {error && (
-        <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 p-4 sm:p-6 rounded-xl border border-red-200 dark:border-red-700">
-          <div className="flex items-start space-x-2 sm:space-x-3">
-            <span className="text-xl sm:text-2xl mt-1">❌</span>
+        <div className="bg-red-500/10 backdrop-blur-md p-6 rounded-2xl border border-red-500/30 shadow-lg animate-shake">
+          <div className="flex items-start space-x-4">
+            <div className="bg-red-500/20 p-2 rounded-lg">
+              <span className="text-2xl">❌</span>
+            </div>
             <div>
-              <h4 className="text-red-800 dark:text-red-200 font-semibold text-sm sm:text-base">Error de Procesamiento</h4>
-              <p className="text-red-600 dark:text-red-300 text-xs sm:text-sm mt-1">{error}</p>
+              <h4 className="text-red-400 font-bold text-sm uppercase tracking-wider mb-1">Error de Procesamiento</h4>
+              <p className="text-red-300/80 text-sm">{error}</p>
             </div>
           </div>
         </div>
       )}
 
       {text && !processing && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 sm:p-6 rounded-xl border border-green-200 dark:border-green-700">
-          <div className="flex items-start space-x-2 sm:space-x-3 mb-3 sm:mb-4">
-            <span className="text-xl sm:text-2xl mt-1">✅</span>
+        <div className="bg-[#151B2D]/40 backdrop-blur-md p-6 rounded-2xl border border-green-500/20 shadow-lg animate-fade-in">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="bg-green-500/20 p-1.5 rounded-lg">
+              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            </div>
             <div>
-              <h4 className="text-green-800 dark:text-green-200 font-semibold text-sm sm:text-base">Texto Extraído Exitosamente</h4>
-              <p className="text-green-600 dark:text-green-300 text-xs sm:text-sm">El OCR ha procesado la imagen correctamente</p>
+              <h4 className="text-green-400 font-bold text-sm uppercase tracking-wider">Texto Extraído</h4>
+              <p className="text-green-400/60 text-xs">OCR completado correctamente</p>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-600 max-h-32 sm:max-h-48 overflow-auto">
-            <pre className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono">
+          <div className="bg-[#0B0C15]/50 p-4 rounded-xl border border-white/5 max-h-48 overflow-auto custom-scrollbar">
+            <pre className="text-xs text-gray-400 whitespace-pre-wrap font-mono leading-relaxed">
               {text}
             </pre>
           </div>
@@ -179,14 +193,14 @@ export default function InvoiceProcessor({ fileUrl, onTextExtracted }: Props) {
       )}
 
       {processedData && !processingAI && (
-        <div className="space-y-3 sm:space-y-4">
-          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-3 sm:p-4 rounded-xl border border-emerald-200 dark:border-emerald-700">
-            <div className="flex items-start space-x-2 sm:space-x-3">
-              <span className="text-xl sm:text-2xl mt-1">🎉</span>
-              <div>
-                <h4 className="text-emerald-800 dark:text-emerald-200 font-semibold text-sm sm:text-base">¡Procesamiento Completado!</h4>
-                <p className="text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm">Los datos han sido extraídos y estructurados correctamente</p>
-              </div>
+        <div className="space-y-6 animate-fade-in-up">
+          <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 p-4 rounded-2xl border border-emerald-500/30 flex items-center space-x-4">
+            <div className="bg-emerald-500/20 p-2 rounded-xl shadow-lg shadow-emerald-500/10">
+              <span className="text-2xl">🎉</span>
+            </div>
+            <div>
+              <h4 className="text-emerald-300 font-bold text-sm uppercase tracking-wider">¡Procesamiento Completado!</h4>
+              <p className="text-emerald-400/70 text-xs">Datos extraídos y estructurados por IA</p>
             </div>
           </div>
 

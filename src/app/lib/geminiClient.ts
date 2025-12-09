@@ -61,6 +61,7 @@ export interface DatosFactura {
   direccionProveedor: string | null;
   rfcProveedor: string | null;
   items: ItemFactura[]; // Array de items de la factura
+  status?: string; // Estado de procesamiento o pago
 }
 
 /**
@@ -82,6 +83,7 @@ function validarYLimpiarDatos(datos: any): DatosFactura {
     direccionProveedor: null,
     rfcProveedor: null,
     items: [],
+    status: undefined
   };
 
   // Función helper para limpiar strings

@@ -348,7 +348,7 @@ export default function DashboardPage() {
     console.log('Processing file automatically:', file.id);
 
     // Actualizar estado a processing
-    setFiles(files => files.map(f => f.id === file.id ? { ...f, status: 'processing' } : f));
+    setFiles(files => files.map(f => f.id === file.id ? { ...f, status: 'processing' as FileStatus } : f));
 
     try {
       // Obtener la URL del archivo
@@ -407,8 +407,8 @@ export default function DashboardPage() {
           f.id === file.id
             ? {
               ...f,
-              status: 'processed',
               ...datos,
+              status: 'processed' as FileStatus,
               extracted_text: extractedText,
             }
             : f
@@ -431,7 +431,7 @@ export default function DashboardPage() {
       await supabase.from('files').update({ status: 'error' }).eq('id', file.id);
 
       // Actualizar estado local
-      setFiles(files => files.map(f => f.id === file.id ? { ...f, status: 'error' } : f));
+      setFiles(files => files.map(f => f.id === file.id ? { ...f, status: 'error' as FileStatus } : f));
     }
   };
 
@@ -439,7 +439,7 @@ export default function DashboardPage() {
   const saveAndProcessFile = async (fileId: string, texto: string) => {
     if (!user) return;
 
-    setFiles(files => files.map(f => f.id === fileId ? { ...f, status: 'processing' } : f));
+    setFiles(files => files.map(f => f.id === fileId ? { ...f, status: 'processing' as FileStatus } : f));
     setActiveFileId(null);
 
     try {
@@ -475,8 +475,8 @@ export default function DashboardPage() {
           f.id === fileId
             ? {
               ...f,
-              status: 'processed',
               ...datos,
+              status: 'processed' as FileStatus,
               extracted_text: texto,
             }
             : f
@@ -485,7 +485,7 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error al procesar con IA o guardar:', error);
       await supabase.from('files').update({ status: 'error' }).eq('id', fileId);
-      setFiles(files => files.map(f => f.id === fileId ? { ...f, status: 'error' } : f));
+      setFiles(files => files.map(f => f.id === fileId ? { ...f, status: 'error' as FileStatus } : f));
     }
   };
 
@@ -549,6 +549,7 @@ export default function DashboardPage() {
             ? {
               ...f,
               ...datos,
+              status: f.status, // Preserve status explicitly
             }
             : f
         )
@@ -682,26 +683,33 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-[#0B0C15] text-white font-sans selection:bg-purple-500/30 selection:text-purple-200 overflow-hidden">
+
+      {/* Background Ambience */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] animate-float" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px] animate-float" style={{ animationDelay: '2s' }} />
+      </div>
+
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <header className="relative z-50 glass border-b border-white/5 bg-[#0B0C15]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-[#0B0C15]/50">
         <div className="flex items-center justify-between px-4 sm:px-6 py-4">
           <div className="flex items-center space-x-4">
             {/* Mobile menu button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+              className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
             >
-              <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
 
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AI</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <span className="text-white font-bold text-lg">AI</span>
             </div>
-            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-              FacturaIA Dashboard
+            <h1 className="text-xl font-bold font-display tracking-tight text-white hidden sm:block">
+              Factura<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">IA</span>
             </h1>
           </div>
 
@@ -709,32 +717,33 @@ export default function DashboardPage() {
           <div className="relative user-menu">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+              className="flex items-center space-x-3 p-1.5 rounded-full border border-white/5 bg-white/5 hover:bg-white/10 transition-all duration-200"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-medium text-sm">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-inner">
+                <span className="text-white font-bold text-xs">
                   {user?.email?.charAt(0).toUpperCase()}
                 </span>
               </div>
-              <div className="text-left hidden sm:block">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {user?.email}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Usuario
+              <div className="text-left hidden sm:block pr-2">
+                <p className="text-sm font-medium text-white">
+                  {user?.email?.split('@')[0]}
                 </p>
               </div>
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
             {/* Dropdown Menu */}
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-[#151B2D] border border-white/10 rounded-xl shadow-2xl py-2 z-50 animate-fade-in backdrop-blur-xl">
+                <div className="px-4 py-2 border-b border-white/5 mb-2">
+                  <p className="text-xs text-gray-500 uppercase font-bold">Cuenta</p>
+                  <p className="text-sm text-white truncate">{user?.email}</p>
+                </div>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
+                  className="w-full text-left px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center space-x-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -747,30 +756,31 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className="flex">
+      <div className="relative z-10 flex h-[calc(100vh-73px)]">
         {/* Sidebar - Mobile Overlay */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Sidebar */}
-        <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
-          <div className="p-4 sm:p-6">
-            <nav className="space-y-2">
+        <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#151B2D]/50 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-r border-white/5 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
+          <div className="p-4 space-y-2">
+            <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 mt-2">Menú Principal</h3>
+            <nav className="space-y-1">
               <button
                 onClick={() => {
                   setActiveView('stats');
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeView === 'stats'
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'stats'
+                  ? 'bg-blue-600/10 text-blue-400 border border-blue-600/20'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 <span className="font-medium">Estadísticas</span>
@@ -781,15 +791,15 @@ export default function DashboardPage() {
                   setActiveView('list');
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeView === 'list'
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'list'
+                  ? 'bg-blue-600/10 text-blue-400 border border-blue-600/20'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span className="font-medium">Lista de Facturas</span>
+                <span className="font-medium">Mis Facturas</span>
               </button>
 
               <button
@@ -797,12 +807,12 @@ export default function DashboardPage() {
                   setActiveView('calculator');
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeView === 'calculator'
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'calculator'
+                  ? 'bg-blue-600/10 text-blue-400 border border-blue-600/20'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
                 <span className="font-medium">Calculadora</span>
@@ -812,7 +822,7 @@ export default function DashboardPage() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto custom-scrollbar">
           {activeView === 'stats' ? (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -839,171 +849,191 @@ export default function DashboardPage() {
               />
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                  Gestión de Facturas
-                </h2>
+                <div>
+                  <h2 className="text-3xl font-bold font-display text-white">
+                    Gestión de Facturas
+                  </h2>
+                  <p className="text-gray-400 mt-1">Sube, procesa y organiza tus documentos fiscales</p>
+                </div>
               </div>
 
               {/* Upload Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Subir Nueva Factura
-                  </h3>
-                </div>
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                <div className="relative p-8 rounded-2xl border border-white/10 bg-[#151B2D]/60 backdrop-blur-xl">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                        <svg className="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Subir Nueva Factura
+                      </h3>
+                      <p className="text-sm text-gray-400">
+                        Soporta archivos PDF e imágenes (PNG, JPG). Procesamiento automático con IA.
+                      </p>
+                    </div>
 
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={handleFileChange}
-                      className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-300"
-                    />
-                    <button
-                      onClick={handleUpload}
-                      disabled={!selectedFile || uploading}
-                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
-                    >
-                      {uploading ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Subiendo...</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                          <span>Subir Factura</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center space-x-4 w-full sm:w-auto">
+                      <label className="flex-1 sm:flex-none cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                        <div className={`px-4 py-3 rounded-xl border border-white/10 flex items-center justify-center space-x-2 transition-all duration-200 ${selectedFile ? 'bg-blue-500/10 border-blue-500/50 text-blue-300' : 'bg-[#0B0C15]/40 text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                          <span className="truncate max-w-[200px] text-sm font-medium">
+                            {selectedFile ? selectedFile.name : 'Seleccionar archivo...'}
+                          </span>
+                        </div>
+                      </label>
+
+                      <button
+                        onClick={handleUpload}
+                        disabled={!selectedFile || uploading}
+                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 disabled:grayscale text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transform transition-all active:scale-95 hover:scale-[1.02] flex items-center space-x-2"
+                      >
+                        {uploading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span>Subiendo...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Procesar</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {uploading && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-blue-800 dark:text-blue-200 font-medium">
-                          Procesando factura automáticamente...
-                        </span>
-                      </div>
+                    <div className="mt-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center space-x-3 animate-pulse">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+                      <span className="text-blue-300 text-sm font-medium">Analizando documento con Inteligencia Artificial...</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Search and Filters */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="Buscar por proveedor, número de factura..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
+              {/* Filters & Search */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
                   </div>
+                  <input
+                    type="text"
+                    placeholder="Buscar por proveedor, ID..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-[#151B2D]/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
+                  />
+                </div>
 
-                  <div className="flex items-center space-x-4">
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value as FileStatus | 'all')}
-                      className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="all">Todos los estados</option>
-                      <option value="pending">Pendientes</option>
-                      <option value="uploaded">Subidas</option>
-                      <option value="processing">Procesando</option>
-                      <option value="processed">Procesadas</option>
-                      <option value="error">Con errores</option>
-                    </select>
-                  </div>
+                <div>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value as FileStatus | 'all')}
+                    className="w-full bg-[#151B2D]/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all appearance-none"
+                  >
+                    <option value="all" className="bg-[#151B2D] text-gray-300">Todos</option>
+                    <option value="pending" className="bg-[#151B2D] text-gray-300">Pendientes</option>
+                    <option value="processing" className="bg-[#151B2D] text-gray-300">Procesando</option>
+                    <option value="processed" className="bg-[#151B2D] text-gray-300">Completados</option>
+                    <option value="error" className="bg-[#151B2D] text-gray-300">Errores</option>
+                  </select>
                 </div>
               </div>
 
               {/* Files List */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Facturas ({filteredFiles.length})
-                  </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center px-2">
+                  <p className="text-sm font-medium text-gray-400">{filteredFiles.length} documentos encontrados</p>
                   <button
                     onClick={cleanupOrphans}
                     disabled={syncing}
-                    className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline disabled:opacity-50"
+                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center space-x-1 transition-colors disabled:opacity-50"
                   >
-                    {syncing ? 'Verificando...' : 'Diagnosticar DB'}
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    <span>{syncing ? 'Sincronizando...' : 'Sincronizar DB'}</span>
                   </button>
                 </div>
 
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                <div className="grid gap-3">
                   {filteredFiles.length === 0 ? (
-                    <div className="p-8 text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-2xl bg-white/5">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-white/5 rounded-full flex items-center justify-center animate-pulse">
+                        <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                        No hay facturas
-                      </h3>
-                      <p className="text-gray-500 dark:text-gray-400">
-                        Sube tu primera factura para comenzar
-                      </p>
+                      <h3 className="text-xl font-bold text-white mb-2">Tu bandeja está vacía</h3>
+                      <p className="text-gray-500">Sube tu primera factura para ver la magia de la IA.</p>
                     </div>
                   ) : (
                     filteredFiles.map((file) => (
                       <div
                         key={file.id}
-                        className="p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 cursor-pointer relative group"
+                        className="group relative bg-[#151B2D]/40 hover:bg-[#151B2D]/80 border border-white/5 hover:border-blue-500/30 rounded-xl p-4 transition-all duration-300 cursor-pointer overflow-hidden"
                         onClick={() => handleViewAndProcess(file)}
                       >
-                        {/* Delete Button */}
-                        <button
-                          onClick={(e) => handleDeleteFile(file, e)}
-                          className="absolute top-2 left-2 sm:top-4 sm:left-4 w-8 h-8 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
-                          title="Eliminar factura"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+                        <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                        <div className="flex items-start space-x-3 sm:space-x-4">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                        <div className="relative z-10 flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 rounded-lg bg-[#0B0C15] border border-white/10 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+
+                            <div>
+                              <h4 className="text-base font-bold text-white group-hover:text-blue-300 transition-colors truncate max-w-[200px] sm:max-w-md" title={getFileName(file.file_path)}>
+                                {file.proveedor || getFileName(file.file_path)}
+                              </h4>
+                              <div className="flex items-center space-x-3 text-xs text-gray-500 mt-1">
+                                <span>{new Date(file.created_at).toLocaleDateString('es-MX')}</span>
+                                {file.monto && (
+                                  <>
+                                    <span className="w-1 h-1 rounded-full bg-gray-600" />
+                                    <span className="text-gray-300 font-mono">
+                                      {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(file.monto)}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2 mb-2">
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate pl-10 sm:pl-12">
-                                {getFileName(file.file_path)}
-                              </h4>
+                          <div className="flex items-center space-x-4">
+                            <div className="hidden sm:block">
                               {getStatusBadge(file.status)}
                             </div>
 
-                            <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                              <span>Subido: {new Date(file.created_at).toLocaleDateString('es-MX')}</span>
-                              {file.proveedor && (
-                                <span>• Proveedor: {file.proveedor}</span>
-                              )}
-                              {file.monto && (
-                                <span>• Monto: {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(file.monto)}</span>
-                              )}
-                            </div>
-                          </div>
+                            <button
+                              onClick={(e) => handleDeleteFile(file, e)}
+                              className="p-2 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors z-20"
+                              title="Eliminar"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
 
-                          <div className="flex items-center space-x-2 flex-shrink-0">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
+                            <div className="text-gray-600 group-hover:text-white transition-colors">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1016,63 +1046,61 @@ export default function DashboardPage() {
 
 
           {/* Right Panel for File Processing */}
-          {
-            activeFileUrl && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                  <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Procesamiento de Factura
-                    </h3>
-                    <button
-                      onClick={() => {
-                        setActiveFileUrl(null);
-                        setActiveFileId(null);
-                        setActiveFileData(null);
-                      }}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+          {activeFileUrl && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Procesamiento de Factura
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setActiveFileUrl(null);
+                      setActiveFileId(null);
+                      setActiveFileData(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="flex flex-col h-[calc(90vh-120px)]">
+                  {/* Image Panel */}
+                  <div className="w-full p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                    <div className="h-64 sm:h-80 lg:h-96 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                      <img
+                        src={activeFileUrl}
+                        alt="Factura"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex flex-col lg:flex-row h-[calc(90vh-120px)]">
-                    {/* Image Panel */}
-                    <div className="w-full lg:w-1/2 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700">
-                      <div className="h-64 lg:h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                        <img
-                          src={activeFileUrl}
-                          alt="Factura"
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Processing Panel */}
-                    <div className="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto">
-                      {activeFileData ? (
-                        <InvoiceDataDisplay
-                          datos={activeFileData}
-                          onSave={handleSaveData}
-                        />
-                      ) : (
-                        <InvoiceProcessor
-                          fileUrl={activeFileUrl}
-                          onTextExtracted={(text) => {
-                            if (activeFileId) {
-                              saveAndProcessFile(activeFileId, text);
-                            }
-                          }}
-                        />
-                      )}
-                    </div>
+                  {/* Processing Panel */}
+                  <div className="w-full p-4 sm:p-6 overflow-y-auto flex-1">
+                    {activeFileData ? (
+                      <InvoiceDataDisplay
+                        datos={activeFileData}
+                        onSave={handleSaveData}
+                      />
+                    ) : (
+                      <InvoiceProcessor
+                        fileUrl={activeFileUrl}
+                        onTextExtracted={(text) => {
+                          if (activeFileId) {
+                            saveAndProcessFile(activeFileId, text);
+                          }
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
-            )
-          }
+            </div>
+          )}
 
 
           {/* Delete Confirmation Modal */}
@@ -1086,9 +1114,8 @@ export default function DashboardPage() {
             cancelText="Cancelar"
             isDestructive={true}
           />
-        </main >
-      </div >
-    </div >
+        </main>
+      </div>
+    </div>
   );
 }
-

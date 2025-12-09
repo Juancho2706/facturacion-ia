@@ -51,3 +51,4 @@ seed_data.sql
 lint_output.txt
 schema.sql
 database_update.sql
+create_demo_user.sql

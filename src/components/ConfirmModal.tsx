@@ -55,68 +55,64 @@ export default function ConfirmModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+      <div
+        className="absolute inset-0 bg-[#0B0C15]/80 backdrop-blur-md animate-fade-in"
         onClick={handleBackdropClick}
       />
-      
+
       {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl max-w-sm sm:max-w-md w-full mx-2 sm:mx-4 transform transition-all">
+      <div className="relative bg-[#151B2D]/90 border border-white/10 rounded-2xl shadow-2xl max-w-sm sm:max-w-md w-full mx-2 sm:mx-4 transform transition-all animate-scale-in overflow-hidden group">
+        <div className={`absolute top-0 left-0 w-full h-1 ${isDestructive ? 'bg-gradient-to-r from-red-600 to-orange-600' : 'bg-gradient-to-r from-blue-600 to-purple-600'}`}></div>
+
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
-              isDestructive 
-                ? 'bg-red-100 dark:bg-red-900/30' 
-                : 'bg-blue-100 dark:bg-blue-900/30'
-            }`}>
-              <span className={`text-lg sm:text-xl ${
-                isDestructive 
-                  ? 'text-red-600 dark:text-red-400' 
-                  : 'text-blue-600 dark:text-blue-400'
+        <div className="flex items-center justify-between p-6 border-b border-white/5">
+          <div className="flex items-center space-x-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${isDestructive
+                ? 'bg-red-500/10 text-red-500 shadow-red-500/10'
+                : 'bg-blue-500/10 text-blue-500 shadow-blue-500/20'
               }`}>
+              <span className="text-2xl">
                 {isDestructive ? '⚠️' : '❓'}
               </span>
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-lg font-bold text-white tracking-wide">
               {title}
             </h3>
           </div>
-          
+
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 p-1"
+            className="text-gray-500 hover:text-white transition-colors duration-200 p-2 hover:bg-white/5 rounded-lg"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-4 sm:p-6">
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+        <div className="p-6">
+          <p className="text-gray-300 leading-relaxed text-sm">
             {message}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4 p-6 bg-[#0B0C15]/30 border-t border-white/5">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg font-medium transition-colors duration-200 text-sm"
+            className="w-full sm:w-auto px-6 py-2.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl font-medium transition-all duration-200 text-sm border border-white/5"
           >
             {cancelText}
           </button>
           <button
             onClick={handleConfirm}
-            className={`w-full sm:w-auto px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 text-sm ${
-              isDestructive
-                ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-                : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
-            } focus:ring-2 focus:ring-offset-2`}
+            className={`w-full sm:w-auto px-6 py-2.5 text-white rounded-xl font-bold transition-all duration-200 text-sm shadow-lg transform hover:scale-105 active:scale-95 ${isDestructive
+                ? 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 shadow-red-500/20'
+                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-blue-500/20'
+              }`}
           >
             {confirmText}
           </button>

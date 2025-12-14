@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
@@ -44,11 +43,8 @@ export default function AuthPage() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="loader mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Verificando autenticación...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0C15]">
+        <div className="loader"></div>
       </div>
     );
   }
@@ -72,129 +68,141 @@ export default function AuthPage() {
         }
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message === "Invalid login credentials" ? "Credenciales inválidas. Intenta nuevamente." : err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="flex min-h-screen">
-        {/* Form Section */}
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="w-full max-w-md">
-            <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-700">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-blue-600 mb-2">
-                  {isLogin ? 'Bienvenido de Nuevo' : 'Crea una Cuenta'}
-                </h1>
-                <p className="text-gray-600 dark:text-gray-300">
-                  {isLogin ? 'Ingresa tus credenciales para acceder a tu panel' : 'Completa el formulario para empezar'}
-                </p>
-              </div>
+    <div className="min-h-screen bg-[#0B0C15] flex text-white font-sans selection:bg-purple-500/30 selection:text-purple-200">
 
-              <form onSubmit={handleAuth} className="space-y-6">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Correo Electrónico
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="nombre@ejemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Contraseña
-                    </label>
-                    {isLogin && (
-                      <Link href="#" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                        ¿Olvidaste tu contraseña?
-                      </Link>
-                    )}
-                  </div>
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
-                  />
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                    <p className="text-red-600 dark:text-red-400 text-sm text-center">{error}</p>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Procesando...
-                    </div>
-                  ) : (
-                    isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  className="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold py-3 px-6 rounded-xl transition-all duration-200 border border-gray-300 dark:border-gray-600"
-                >
-                  {isLogin ? 'Iniciar sesión con Google' : 'Registrarse con Google'}
-                </button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  {isLogin ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}
-                  <button
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-blue-600 dark:text-blue-400 hover:underline ml-1 font-medium"
-                  >
-                    {isLogin ? 'Regístrate' : 'Inicia Sesión'}
-                  </button>
-                </p>
-              </div>
-            </div>
-          </div>
+      {/* --- Left Side: Visual --- */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#151B2D] items-center justify-center">
+        {/* Animated Background */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-blue-600/20 rounded-full blur-[120px] animate-float" />
+          <div className="absolute bottom-[-20%] right-[-20%] w-[80%] h-[80%] bg-purple-600/20 rounded-full blur-[120px] animate-float" style={{ animationDelay: '3s' }} />
         </div>
 
-        {/* Image Section */}
-        <div className="hidden lg:block lg:w-1/2 relative">
-          <div className="absolute inset-0 bg-blue-600/20 z-10"></div>
-          <Image
-            src="https://images.unsplash.com/photo-1599423300746-b625ed8ba949?q=80&w=3087&auto=format&fit=crop"
-            alt="Facturación IA"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/20 z-10"></div>
-          <div className="absolute inset-0 flex items-center justify-center z-20">
-            <div className="text-center text-white p-8">
-              <h2 className="text-4xl font-bold mb-4">Sistema de Facturación IA</h2>
-              <p className="text-xl opacity-90">Transforma la manera en que gestionas tus facturas</p>
+        <div className="relative z-10 text-center px-12 animate-slide-up">
+          <div className="mb-8 inline-block p-4 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl">
+            <span className="text-6xl">🧠</span>
+          </div>
+          <h2 className="text-5xl font-extrabold font-display mb-6 leading-tight">
+            Tu Contabilidad,<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+              Reinventada.
+            </span>
+          </h2>
+          <p className="text-gray-400 text-lg max-w-md mx-auto">
+            Únete a la plataforma que está transformando la gestión financiera con inteligencia artificial real.
+          </p>
+        </div>
+      </div>
+
+      {/* --- Right Side: Form --- */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+        <div className="absolute inset-0 z-0 lg:hidden">
+          <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-600/10 rounded-full blur-[100px]" />
+        </div>
+
+        <div className="w-full max-w-md relative z-10 space-y-8 animate-fade-in">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold font-display mb-2">
+              {isLogin ? 'Bienvenido de Nuevo' : 'Crea tu Cuenta'}
+            </h1>
+            <p className="text-gray-500 text-sm">
+              {isLogin ? 'Accede al panel de control integral.' : 'Empieza tu prueba gratuita hoy mismo.'}
+            </p>
+          </div>
+
+          <div className="glass p-8 rounded-3xl border border-white/10 bg-[#151B2D]/50 space-y-6">
+            <form onSubmit={handleAuth} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-gray-300 tracking-wider ml-1">Email</label>
+                <input
+                  type="email"
+                  placeholder="nombre@empresa.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full bg-[#0B0C15]/80 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-gray-300 tracking-wider ml-1">Contraseña</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-[#0B0C15]/80 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                />
+              </div>
+
+              {error && (
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center font-medium">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-lg shadow-lg shadow-blue-500/25 transform transition-all active:scale-95 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    <span>Procesando...</span>
+                  </div>
+                ) : (
+                  isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'
+                )}
+              </button>
+            </form>
+
+            {/* Demo User Shortcut */}
+            <div className="pt-6 border-t border-white/5">
+              <div className="bg-[#0f1219] border border-blue-500/20 rounded-xl p-5 text-center shadow-lg">
+                <p className="text-xs text-blue-300 font-extrabold uppercase tracking-widest mb-3">⚡ Acceso Rápido Demo</p>
+                <div className="flex justify-center space-x-4 text-xs text-gray-300 font-mono mb-4 bg-white/5 py-2 rounded-lg mx-4">
+                  <span>U: demo@facturaia.com</span>
+                  <span>P: demo1234</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('demo@facturaia.com');
+                    setPassword('demo1234');
+                    setIsLogin(true);
+                  }}
+                  className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors font-bold shadow-md shadow-blue-500/20"
+                >
+                  Autocompletar
+                </button>
+              </div>
             </div>
+
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-gray-500 hover:text-white transition-colors text-sm font-medium"
+            >
+              {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
+              <span className="text-blue-400 hover:text-blue-300 ml-1">
+                {isLogin ? 'Regístrate aquí' : 'Inicia sesión'}
+              </span>
+            </button>
           </div>
         </div>
       </div>
+
     </div>
   );
 }

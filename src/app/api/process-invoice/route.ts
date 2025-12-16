@@ -43,7 +43,7 @@ Estructura esperada:
   "fecha": "fecha de la factura en formato YYYY-MM-DD (null si no se encuentra)",
   "monto": "monto total de la factura (solo números, null si no se encuentra)",
   "numeroFactura": "número de factura o folio (null si no se encuentra)",
-  "categoria": "categoría del gasto (servicios, productos, impuestos, etc., null si no se encuentra)",
+  "categoria": "INFIERE la categoría del gasto basándote en el proveedor y los ítems. Elige EXCLUSIVAMENTE una de las siguientes: [Servicios, Productos, Oficina, Transporte, Marketing, Comida, Software, Otros]. NO uses null.",
   "moneda": "moneda (MXN, USD, EUR, null si no se encuentra)",
   "impuestos": "monto de impuestos (solo números, null si no se encuentra)",
   "subtotal": "subtotal antes de impuestos (solo números, null si no se encuentra)",

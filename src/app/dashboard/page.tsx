@@ -353,19 +353,37 @@ export default function DashboardPage() {
     try {
       // Obtener la URL del archivo
       const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/facturas/${file.file_path}`;
+      let extractedText = '';
 
-      // Procesar con Tesseract OCR
-      console.log('Starting OCR processing...');
-      const Tesseract = (await import('tesseract.js')).default;
+      // Determinar si es PDF o Imagen
+      const isPdf = file.file_path.toLowerCase().endsWith('.pdf');
 
-      const result = await Tesseract.recognize(fileUrl, 'spa', {
-        logger: (m) => {
-          console.log('OCR Progress:', m.status, m.progress);
-        },
-      });
+      if (isPdf) {
+        console.log('Detected PDF file. Using PDF text extraction...');
+        // Importar dinámicamente para evitar problemas de SSR si fuera el caso (aunque esto corre en cliente)
+        const { extractTextFromPdf } = await import('../lib/pdfUtils');
+        extractedText = await extractTextFromPdf(fileUrl);
+        console.log(`PDF Extraction complete. Text length: ${extractedText.length}`);
 
-      const extractedText = result.data.text;
-      console.log('OCR completed, extracted text length:', extractedText.length);
+        if (extractedText.trim().length < 50) {
+          console.warn("Low text content from PDF. It might be a scanned image-only PDF.");
+          // TODO: Implement PDF-to-Image -> OCR fallback if needed later.
+          // For now, we continue, but results might be poor.
+        }
+      } else {
+        // Procesar con Tesseract OCR (Imágenes)
+        console.log('Detected Image file. Starting OCR processing...');
+        const Tesseract = (await import('tesseract.js')).default;
+
+        const result = await Tesseract.recognize(fileUrl, 'spa', {
+          logger: (m) => {
+            console.log('OCR Progress:', m.status, m.progress);
+          },
+        });
+
+        extractedText = result.data.text;
+        console.log('OCR completed, extracted text length:', extractedText.length);
+      }
 
       // Procesar con IA
       console.log('Starting AI processing...');
@@ -415,7 +433,6 @@ export default function DashboardPage() {
         )
       );
 
-      console.log('Automatic processing completed successfully for file:', file.id);
       console.log('Automatic processing completed successfully for file:', file.id);
     } catch (error: any) {
       console.error('Error in automatic processing:', error);
@@ -1069,15 +1086,7 @@ export default function DashboardPage() {
 
                 <div className="flex flex-col h-[calc(90vh-120px)]">
                   {/* Image Panel */}
-                  <div className="w-full p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-                    <div className="h-64 sm:h-80 lg:h-96 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                      <img
-                        src={activeFileUrl}
-                        alt="Factura"
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    </div>
-                  </div>
+
 
                   {/* Processing Panel */}
                   <div className="w-full p-4 sm:p-6 overflow-y-auto flex-1">

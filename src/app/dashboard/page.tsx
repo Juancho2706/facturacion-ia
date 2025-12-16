@@ -723,7 +723,7 @@ export default function DashboardPage() {
             </button>
 
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <span className="text-white font-bold text-lg">AI</span>
+              <img src="/logo-small.png" alt="Logo" className="w-6 h-6 object-contain" />
             </div>
             <h1 className="text-xl font-bold font-display tracking-tight text-white hidden sm:block">
               Factura<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">IA</span>

@@ -50,7 +50,7 @@ export default function HomePage() {
         <div className="container mx-auto px-6 h-20 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 shadow-lg shadow-blue-500/20">
-              <span className="text-xl animate-pulse">🧠</span>
+              <img src="/logo-small.png" alt="Logo" className="w-6 h-6 object-contain" />
             </div>
             <span className="text-xl font-bold font-display tracking-tight text-white/90">
               Factura<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">IA</span>
@@ -243,9 +243,9 @@ export default function HomePage() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { name: "Sofía R.", role: "Freelancer", text: "Antes tardaba horas en excel. Ahora subo mis facturas y listo. Es magia pura." },
-                { name: "Carlos M.", role: "CEO TechStart", text: "La precisión de la IA es increíble. Ha simplificado totalmente nuestra contabilidad mensual." },
-                { name: "Ana P.", role: "Diseñadora", text: "La interfaz es hermosa y muy rápida. Da gusto usar una herramienta así." }
+                { name: "Sofía R.", role: "Freelancer", text: "Antes tardaba horas en excel. Ahora subo mis facturas y listo. Es magia pura.", image: "/profile-sofia.png" },
+                { name: "Carlos M.", role: "CEO TechStart", text: "La precisión de la IA es increíble. Ha simplificado totalmente nuestra contabilidad mensual.", image: "/profile-carlos.png" },
+                { name: "Ana P.", role: "Diseñadora", text: "La interfaz es hermosa y muy rápida. Da gusto usar una herramienta así.", image: "/profile-ana.png" }
               ].map((t, i) => (
                 <div key={i} className="p-6 rounded-2xl bg-[#1A1F35]/50 border border-white/5 hover:border-white/10 transition-colors">
                   <div className="flex items-center gap-1 text-yellow-500 mb-4 text-sm">
@@ -253,7 +253,7 @@ export default function HomePage() {
                   </div>
                   <p className="text-gray-300 text-sm leading-relaxed mb-6">"{t.text}"</p>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-600"></div>
+                    <img src={t.image} alt={t.name} className="w-10 h-10 rounded-full object-cover border border-white/10" />
                     <div>
                       <div className="text-white font-bold text-sm">{t.name}</div>
                       <div className="text-gray-500 text-xs">{t.role}</div>
